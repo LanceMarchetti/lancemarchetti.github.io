@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychic Scrambler by Narchotax</title>
+    <style>
+        :root {
+            --bg: #111111;
+            --card: #1e1e1e;
+            --accent: #555555;
+            --highlight: #facc15;
+            --text: #f0f0f0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background-color: var(--card);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 812px;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 0.25rem; color: var(--highlight); }
+
+        label { display: block; text-align: left; color: #94a3b8; font-size: 0.9rem; margin-bottom: 6px; margin-top: 1rem; }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            background-color: var(--bg);
+            border: 2px solid var(--accent);
+            color: var(--text);
+            padding: 1rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus { border-color: var(--highlight); }
+
+        button {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            outline: none;
+            transition: opacity 0.2s;
+        }
+
+        button.primary {
+            background-color: var(--highlight);
+            color: var(--bg);
+            font-weight: bold;
+            width: 100%;
+            margin-top: 1.25rem;
+            border: none;
+        }
+
+        button.primary:hover { opacity: 0.9; }
+
+        .burst-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 0.75rem;
+        }
+
+        .burst-btn {
+            padding: 0.3rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: #94a3b8;
+            transition: opacity 0.15s, border-color 0.15s;
+        }
+
+        .burst-btn:hover { border-color: var(--highlight); color: var(--highlight); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .stat-box {
+            padding: 0.75rem;
+            background: rgba(250, 204, 21, 0.08);
+            border: 1px solid rgba(250, 204, 21, 0.2);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label { font-size: 0.75rem; color: #4748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; font-family: 'Courier New', monospace; color: var(--highlight); margin-top: 2px; }
+
+        .preview-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .preview-col { flex: 1; text-align: left; }
+        .preview-col .lbl { color: #4748b; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 2px; }
+        .preview-col .val { color: var(--text); word-break: break-all; }
+
+        .bottom-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
+        .bottom-row button {
+            flex: 1;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: #94a3b8;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Psychic Scrambler</h1>
+    <p style="color:#4748b; font-size: 0.85rem;">Each click applies a composite permutation. After N clicks, the text returns to its original form.</p>
+
+    <label for="inputText">Input text</label>
+    <textarea id="inputText" placeholder="Type your text here...">HELLO WORLD</textarea>
+
+    <button class="primary" id="scrambleBtn" onclick="scramble()">Scramble</button>
+
+    <div class="burst-row">
+        <button class="burst-btn" onclick="burst(10)">10</button>
+        <button class="burst-btn" onclick="burst(50)">50</button>
+        <button class="burst-btn" onclick="burst(100)">100</button>
+        <button class="burst-btn" onclick="burst(150)">150</button>
+        <button class="burst-btn" onclick="burst(200)">200</button>
+        <button class="burst-btn" onclick="burst(250)">250</button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-label">Click</div>
+            <div class="stat-value" id="clickCount">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Cycle length</div>
+            <div class="stat-value" id="cycleLen">-</div>
+        </div>
+
+    </div>
+
+    <div class="preview-row">
+        <div class="preview-col">
+            <div class="lbl">Original</div>
+            <div class="val" id="origPreview">-</div>
+        </div>
+        <div class="preview-col">
+            <div class="lbl">Current</div>
+            <div class="val" id="curPreview">-</div>
+        </div>
+    </div>
+
+    <div class="bottom-row">
+        <button onclick="resetAll()">Reset</button>
+    </div>
+</div>
+
+<script>
+    let clickCount = 0;
+    let originalText = '';
+    let cycleLen = 0;
+
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+    function lcm(a, b) { return (a / gcd(a, b)) * b; }
+
+    function permAdjacentSwap(n) {
+        const p = Array.from({length: n}, (_, i) => i);
+        for (let i = 0; i + 1 < n; i += 2) { p[i] = i + 1; p[i + 1] = i; }
+        return p;
+    }
+
+    function permTripleInterleave(n) {
+        const p = new Array(n);
+        const groups = [[], [], []];
+        for (let i = 0; i < n; i++) groups[i % 3].push(i);
+        const merged = groups[0].concat(groups[1]).concat(groups[2]);
+        for (let i = 0; i < n; i++) p[merged[i]] = i;
+        return p;
+    }
+
+    function permMixedComposite(n) {
+        let p = permAdjacentSwap(n);
+        p = compose(p, permTripleInterleave(n));
+        return p;
+    }
+
+    function compose(p, q) {
+        return q.map(i => p[i]);
+    }
+
+    function permOrder(p) {
+        const n = p.length;
+        const visited = new Array(n).fill(false);
+        let order = 1;
+        for (let i = 0; i < n; i++) {
+            if (visited[i]) continue;
+            let len = 0, j = i;
+            while (!visited[j]) { visited[j] = true; j = p[j]; len++; }
+            if (len > 0) order = lcm(order, len);
+        }
+        return order;
+    }
+
+    function applyPerm(text, perm) {
+        const arr = text.split('');
+        const out = new Array(arr.length);
+        for (let i = 0; i < arr.length; i++) out[perm[i]] = arr[i];
+        return out.join('');
+    }
+
+    function trunc(s) { return s.length > 500 ? s.slice(0, 500) + '...' : s; }
+
+    function recalcStats() {
+        const text = document.getElementById('inputText').value;
+        if (!text) {
+            cycleLen = 0;
+            document.getElementById('cycleLen').textContent = '-';
+            document.getElementById('origPreview').textContent = '-';
+            document.getElementById('curPreview').textContent = '-';
+            return;
+        }
+        const perm = permMixedComposite(text.length);
+        cycleLen = permOrder(perm);
+        document.getElementById('cycleLen').textContent = cycleLen;
+        document.getElementById('origPreview').textContent = trunc(text);
+        document.getElementById('curPreview').textContent = trunc(text);
+    }
+
+    function scramble() {
+        const text = document.getElementById('inputText').value;
+        if (!text) return;
+
+        if (clickCount === 0) {
+            originalText = text;
+            const perm = permMixedComposite(text.length);
+            cycleLen = permOrder(perm);
+            document.getElementById('cycleLen').textContent = cycleLen;
+            document.getElementById('origPreview').textContent = trunc(text);
+        }
+
+        const perm = permMixedComposite(text.length);
+        const scrambled = applyPerm(text, perm);
+        document.getElementById('inputText').value = scrambled;
+        document.getElementById('curPreview').textContent = trunc(scrambled);
+
+        clickCount++;
+        document.getElementById('clickCount').textContent = clickCount;
+    }
+
+    function burst(n) {
+        const text = document.getElementById('inputText').value;
+        if (!text) return;
+
+        if (clickCount === 0) {
+            originalText = text;
+            const perm = permMixedComposite(text.length);
+            cycleLen = permOrder(perm);
+            document.getElementById('cycleLen').textContent = cycleLen;
+            document.getElementById('origPreview').textContent = trunc(text);
+        }
+
+        const perm = permMixedComposite(text.length);
+        let current = text;
+        for (let i = 0; i < n; i++) {
+            current = applyPerm(current, perm);
+            clickCount++;
+        }
+        document.getElementById('inputText').value = current;
+        document.getElementById('curPreview').textContent = trunc(current);
+        document.getElementById('clickCount').textContent = clickCount;
+    }
+
+    function resetAll() {
+        clickCount = 0;
+        cycleLen = 0;
+        document.getElementById('inputText').value = '';
+        document.getElementById('clickCount').textContent = '0';
+        document.getElementById('cycleLen').textContent = '-';
+        document.getElementById('origPreview').textContent = '-';
+        document.getElementById('curPreview').textContent = '-';
+    }
+
+    recalcStats();
+    document.getElementById('inputText').addEventListener('input', recalcStats);
+</script>
+
+</body>
+</html>
